@@ -15,6 +15,7 @@ class StudentsPerformance():
   """
   This class implements the students_performance module.
   """
+
   def __init__(self):
     self.classifier_scores = {}
     self.classifier_pca = {}
