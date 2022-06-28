@@ -4,6 +4,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from matplotlib import pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
+import itertools
+
 
 
 class StudentsPerformance():
@@ -119,50 +121,65 @@ class StudentsPerformance():
     def ensemble(self,X,y):
         #The dictionary will be used to compare classifications.
         y_pred = {}
+        bestComboScore = 0
 
-        for classifier in self.classifiers:
-           
-            #Random state is used to ensure each classifier has the same data. This is useful to ensure the validity of comparisons.
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state = 33)
-            #Fitting each classifier to the data after performing feature reduction using its optimal number of principal components.
-            pca = PCA(self.classifierPCA[classifier]).fit(X)
-            X_train, X_test = pca.transform(X_train), pca.transform(X_test)
-            clf = self.classifiers[classifier]
-            clf.fit(X_train, y_train)
-            
-            #Recording the response for comparison.
-            y_pred[classifier] = clf.predict(X_test)
+        for r in range(2, len(self.classifiers.keys())+1):
+            for combination in itertools.combinations(self.classifiers.keys(),r):
+                for classifier in combination:
+                
+                    #Random state is used to ensure each classifier has the same data. This is useful to ensure the validity of comparisons.
+                    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state = 33)
+                    #Fitting each classifier to the data after performing feature reduction using its optimal number of principal components.
+                    pca = PCA(self.classifierPCA[classifier]).fit(X)
+                    X_train, X_test = pca.transform(X_train), pca.transform(X_test)
+                    clf = self.classifiers[classifier]
+                    clf.fit(X_train, y_train)
+                    
+                    #Recording the response for comparison.
+                    y_pred[classifier] = clf.predict(X_test)
 
-        #Final classification after comparing answers.
-        final_y_pred = []
-        for i in range(len(X_test)):
-            passed, failed = [], []
+                #Final classification after comparing answers.
+                final_y_pred = []
+                for i in range(len(X_test)):
+                    passed, failed = [], []
 
-            for clf in y_pred:
-                classification = y_pred[clf][i]
-                if classification == "Passed":
-                    passed.append(clf)
-                else:
-                    failed.append(clf) 
+                    for clf in y_pred:
+                        classification = y_pred[clf][i]
+                        if classification == "Passed":
+                            passed.append(clf)
+                        else:
+                            failed.append(clf) 
 
-            #If there's a disagreement, majority voting is used to determine the final classification.
-            if len(passed) != 0 and len(failed) != 0:
-                if len(failed) >= 3:
-                    final_y_pred.append("Failed")
-                else:
-                    final_y_pred.append("Passed")
-            else:
-                final_y_pred.append(y_pred[clf][i])
+                    #If there's a disagreement, majority voting is used to determine the final classification.
+                    if len(passed) != 0 and len(failed) != 0:
+                        
+                        weightedPassed, weightedFailed = 0, 0
+                        for clfPassed in passed:
+                            weightedPassed += (self.classifierScores[clfPassed]/100)
+                        for clfFailed in failed:
+                            weightedFailed += (self.classifierScores[clfFailed]/100)
 
+                        if weightedPassed >= weightedFailed :
+                            final_y_pred.append("Passed")
+                        else:
+                            final_y_pred.append("Failed")
+
+                    else:
+                        final_y_pred.append(y_pred[clf][i])
+
+                if round(accuracy_score(y_test,final_y_pred)*100,2) > bestComboScore:
+                    bestCombo, bestComboScore = combination, round(accuracy_score(y_test,final_y_pred)*100,2)
+                    bestComboCM = confusion_matrix(y_test, final_y_pred)
+        
         #Creating the final confusion matrix
-        CM = confusion_matrix(y_test, final_y_pred)
-        ConfusionMatrixDisplay(CM, display_labels = ["Passed","Failed"]).plot()
+        ConfusionMatrixDisplay(bestComboCM, display_labels = ["Failed","Passed"]).plot()
         plt.title("Final Confusion Matrix Using Ensemble Learning", fontsize= 15)
         plt.xlabel("Predicted",fontsize = 15)
         plt.ylabel("True",fontsize = 15)
         plt.tick_params(axis = "both", labelsize = 15)
         plt.show()
-        print("Final Accuracy:", round(accuracy_score(y_test,final_y_pred)*100,2),"%")
-    
+        print("The best ensemble is", combination)
+        print("Final Accuracy:", bestComboScore,"%")
+            
 
-                
+                        
