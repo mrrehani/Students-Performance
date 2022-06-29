@@ -1,7 +1,6 @@
 # CNN-Wheres-Waldo
 
 ![Contributors](https://img.shields.io/badge/Contributors-Michael%20Rehani-brightgreen)
-![Build](https://img.shields.io/badge/build-passing-brightgreen)
 ![Licence](https://img.shields.io/github/license/mrrehani/Students-Performance)
 ![Size](https://img.shields.io/github/repo-size/mrrehani/Students-Performance)
 <br>
