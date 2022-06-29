@@ -1,4 +1,3 @@
-The data is from here: https://www.kaggle.com/spscientist/students-performance-in-exams 
 # CNN-Wheres-Waldo
 
 ![Contributors](https://img.shields.io/badge/Contributors-Michael%20Rehani-brightgreen)
