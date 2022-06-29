@@ -27,7 +27,7 @@ In this project, I focused on predicting student test performance based on a ran
 
 ### Instructions
 - Clone the repository
-- Open the notebook file, making sure that the 'Created Dataset' folder is still in the same directory
+- Open the notebook file, making sure that the 'StudentsPerformance.csv' file is still in the same directory
 - Run the all the cells
 
 ### Credits
